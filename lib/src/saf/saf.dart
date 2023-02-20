@@ -525,6 +525,12 @@ Future<Uint8List?> getDocumentContent(Uri uri) async =>
       <String, String>{'uri': '$uri'},
     );
 
+Future<String?> shiftDocumentContent(Uri uri) async =>
+    kDocumentFileChannel.invokeMethod<String?>(
+      'shiftDocumentContent',
+      <String, String>{'uri': '$uri'},
+    );
+
 /// {@template sharedstorage.saf.getDocumentContentAsString}
 /// Helper method to read document using
 /// `getDocumentContent` and get the content as String instead as `Uint8List`.

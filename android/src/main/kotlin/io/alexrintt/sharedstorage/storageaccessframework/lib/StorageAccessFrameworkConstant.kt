@@ -50,6 +50,7 @@ const val OPEN_DOCUMENT_FILE = "openDocumentFile"
  */
 const val LIST_FILES = "listFiles"
 const val GET_DOCUMENT_CONTENT = "getDocumentContent"
+const val SHIFT_DOCUMENT_CONTENT = "shiftDocumentContent"
 
 /**
  * Intent Request Codes

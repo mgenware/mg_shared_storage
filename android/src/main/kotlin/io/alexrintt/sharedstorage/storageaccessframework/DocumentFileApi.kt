@@ -18,10 +18,7 @@ import io.alexrintt.sharedstorage.storageaccessframework.lib.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.FileNotFoundException
-import java.io.IOException
-import java.io.InputStream
-import java.io.OutputStream
+import java.io.*
 
 /**
  * Aimed to implement strictly only the APIs already available from the native and original
@@ -54,6 +51,19 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
         if (Build.VERSION.SDK_INT >= API_21) {
           CoroutineScope(Dispatchers.IO).launch {
             val content = readDocumentContent(uri)
+
+            launch(Dispatchers.Main) { result.success(content) }
+          }
+        } else {
+          result.notSupported(call.method, API_21)
+        }
+      }
+      SHIFT_DOCUMENT_CONTENT -> {
+        val uri = Uri.parse(call.argument<String>("uri")!!)
+
+        if (Build.VERSION.SDK_INT >= API_21) {
+          CoroutineScope(Dispatchers.IO).launch {
+            val content = shiftDocumentContent(uri)
 
             launch(Dispatchers.Main) { result.success(content) }
           }
@@ -582,6 +592,27 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
       inputStream?.close()
 
       bytes
+    } catch (e: FileNotFoundException) {
+      null
+    } catch (e: IOException) {
+      null
+    }
+  }
+
+  /** Copy a document to a tmp dir and return the file path */
+  @RequiresApi(API_21)
+  private fun shiftDocumentContent(uri: Uri): String? {
+    return try {
+      val inputStream = openInputStream(uri) ?: return null
+
+      val tempFile: File = File.createTempFile("shared_storage_shift_doc", "")
+      tempFile.deleteOnExit()
+      val outStream = FileOutputStream(tempFile)
+      outStream.use { fileOut ->
+        inputStream.copyTo(fileOut)
+      }
+
+      return tempFile.absolutePath
     } catch (e: FileNotFoundException) {
       null
     } catch (e: IOException) {
