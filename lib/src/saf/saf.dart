@@ -431,6 +431,14 @@ Future<DocumentFile?> findFile(Uri directoryUri, String displayName) async {
   return invokeMapMethod('findFile', args);
 }
 
+Future<List<DocumentFile>?> listFiles2(Uri directoryUri) async {
+  final Map<String, String> args = <String, String>{
+    'uri': '$directoryUri',
+  };
+
+  return invokeListMethod('listFiles2', args);
+}
+
 /// {@template sharedstorage.saf.renameTo}
 /// Rename the current document `uri` to a new `displayName`.
 ///

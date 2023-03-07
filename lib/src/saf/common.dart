@@ -14,3 +14,22 @@ Future<DocumentFile?> invokeMapMethod(
 
   return DocumentFile.fromMap(documentMap);
 }
+
+Future<List<DocumentFile>?> invokeListMethod(
+  String method,
+  Map<String, dynamic> args,
+) async {
+  final List<Map<dynamic, dynamic>?>? documentList = await kDocumentFileChannel
+      .invokeListMethod<Map<dynamic, dynamic>?>(method, args);
+
+  if (documentList == null) return null;
+
+  final List<DocumentFile> res = [];
+  for (final Map<dynamic, dynamic>? map in documentList) {
+    if (map != null) {
+      res.add(DocumentFile.fromMap(map));
+    }
+  }
+
+  return res;
+}

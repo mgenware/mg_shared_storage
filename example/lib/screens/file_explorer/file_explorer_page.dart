@@ -215,22 +215,10 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
       DocumentFileColumn.id,
     ];
 
-    final fileListStream = listFiles(folderUri, columns: columns);
-
-    _listener = fileListStream.listen(
-      (file) {
-        /// Append new files to the current file list
-        _files = [...?_files, file];
-
-        /// Update the state only if the widget is currently showing
-        if (mounted) {
-          setState(() {});
-        } else {
-          _listener?.cancel();
-        }
-      },
-      onDone: () => setState(() => _files = [...?_files]),
-    );
+    var files = await listFiles2(folderUri);
+    setState(() {
+      _files = files;
+    });
   }
 
   @override

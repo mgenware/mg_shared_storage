@@ -29,7 +29,7 @@ class DocumentFile {
     required this.lastModified,
   });
 
-  factory DocumentFile.fromMap(Map<String, dynamic> map) {
+  factory DocumentFile.fromMap(Map<dynamic, dynamic> map) {
     return DocumentFile(
       parentUri:
           (map['parentUri'] as String?)?.apply((String p) => Uri.parse(p)),
@@ -218,6 +218,8 @@ class DocumentFile {
   /// {@macro sharedstorage.saf.findFile}
   Future<DocumentFile?> findFile(String displayName) =>
       saf.findFile(uri, displayName);
+
+  Future<List<DocumentFile>?> listFiles2() => saf.listFiles2(uri);
 
   /// {@macro sharedstorage.saf.renameTo}
   Future<DocumentFile?> renameTo(String displayName) =>
