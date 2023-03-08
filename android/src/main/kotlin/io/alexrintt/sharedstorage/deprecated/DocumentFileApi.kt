@@ -184,30 +184,26 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           val uri = call.argument<String?>("uri") as String
           val path = call.argument<ArrayList<String>>("path") as ArrayList<String>
 
-          CoroutineScope(Dispatchers.IO).launch {
-            var curDocument = documentFromUri(
-              plugin.context,
-              uri
-            );
-            if (curDocument == null) {
-              launch(Dispatchers.Main) { result.success(null) }
-            } else {
-              for (name in path) {
-                var childDocument =
-                  curDocument!!.child(plugin.context, name)
-                if (childDocument == null) {
-                  childDocument = curDocument.createDirectory(name)
-                }
-                curDocument = childDocument
+          var curDocument = documentFromUri(
+            plugin.context,
+            uri
+          );
+          if (curDocument == null) {
+            result.success(null)
+          } else {
+            for (name in path) {
+              var childDocument =
+                curDocument!!.child(plugin.context, name)
+              if (childDocument == null) {
+                childDocument = curDocument.createDirectory(name)
               }
+              curDocument = childDocument
+            }
 
-              launch(Dispatchers.Main) {
-                if (curDocument == null) {
-                  result.success(null)
-                } else {
-                  result.success(createDocumentFileMap(curDocument))
-                }
-              }
+            if (curDocument == null) {
+              result.success(null)
+            } else {
+              result.success(createDocumentFileMap(curDocument))
             }
           }
         }
