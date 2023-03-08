@@ -182,7 +182,7 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
       "mkdirp" -> {
         if (Build.VERSION.SDK_INT >= API_21) {
           val uri = call.argument<String?>("uri") as String
-          val path = call.argument<Array<String>>("path") as Array<String>
+          val path = call.argument<ArrayList<String>>("path") as ArrayList<String>
 
           CoroutineScope(Dispatchers.IO).launch {
             var curDocument = documentFromUri(

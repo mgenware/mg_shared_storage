@@ -69,29 +69,30 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
   }
 
   Future<void> _createCustomDocument() async {
-    final filename = await showDialog<String>(
-      context: context,
-      builder: (context) => const TextFieldDialog(
-        hintText: 'File name:',
-        labelText: 'My Text File',
-        suffixText: '.txt',
-        actionText: 'Create',
-      ),
-    );
+    // final filename = await showDialog<String>(
+    //   context: context,
+    //   builder: (context) => const TextFieldDialog(
+    //     hintText: 'File name:',
+    //     labelText: 'My Text File',
+    //     suffixText: '.txt',
+    //     actionText: 'Create',
+    //   ),
+    // );
 
-    if (filename == null) return;
+    // if (filename == null) return;
 
-    final createdFile = await createFile(
-      widget.uri,
-      mimeType: 'text/plain',
-      displayName: filename,
-    );
+    // final createdFile = await createFile(
+    //   widget.uri,
+    //   mimeType: 'text/plain',
+    //   displayName: filename,
+    // );
 
-    if (createdFile != null) {
-      _files?.add(createdFile);
+    // if (createdFile != null) {
+    //   _files?.add(createdFile);
 
-      if (mounted) setState(() {});
-    }
+    //   if (mounted) setState(() {});
+    // }
+    await mkdirp(widget.uri, ['a', 'b', 'c']);
   }
 
   Widget _buildCreateDocumentButton() {
@@ -203,17 +204,6 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
     }
 
     final folderUri = widget.uri;
-
-    const columns = [
-      DocumentFileColumn.displayName,
-      DocumentFileColumn.size,
-      DocumentFileColumn.lastModified,
-      DocumentFileColumn.mimeType,
-      // The column below is a optional column
-      // you can wether include or not here and
-      // it will be always available on the results
-      DocumentFileColumn.id,
-    ];
 
     var files = await listFiles2(folderUri);
     setState(() {
