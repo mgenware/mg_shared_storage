@@ -179,6 +179,39 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           result.notSupported(call.method, API_21)
         }
       }
+      "mkdirp" -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
+          val path = call.argument<Array<String>>("path") as Array<String>
+
+          CoroutineScope(Dispatchers.IO).launch {
+            var curDocument = documentFromUri(
+              plugin.context,
+              uri
+            );
+            if (curDocument == null) {
+              launch(Dispatchers.Main) { result.success(null) }
+            } else {
+              for (name in path) {
+                var childDocument =
+                  curDocument!!.child(plugin.context, name)
+                if (childDocument == null) {
+                  childDocument = curDocument.createDirectory(name)
+                }
+                curDocument = childDocument
+              }
+
+              launch(Dispatchers.Main) {
+                if (curDocument == null) {
+                  result.success(null)
+                } else {
+                  result.success(createDocumentFileMap(curDocument))
+                }
+              }
+            }
+          }
+        }
+      }
       "listFiles2" -> {
         if (Build.VERSION.SDK_INT >= API_21) {
           val uri = call.argument<String?>("uri") as String

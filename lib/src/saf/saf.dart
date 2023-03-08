@@ -431,6 +431,15 @@ Future<DocumentFile?> findFile(Uri directoryUri, String displayName) async {
   return invokeMapMethod('findFile', args);
 }
 
+Future<DocumentFile?> mkdirp(Uri directoryUri, List<String> path) async {
+  final Map<String, dynamic> args = <String, dynamic>{
+    'uri': '$directoryUri',
+    'path': path,
+  };
+
+  return invokeMapMethod('mkdirp', args);
+}
+
 Future<List<DocumentFile>?> listFiles2(Uri directoryUri) async {
   final Map<String, String> args = <String, String>{
     'uri': '$directoryUri',

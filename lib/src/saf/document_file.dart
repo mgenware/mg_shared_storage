@@ -221,6 +221,8 @@ class DocumentFile {
 
   Future<List<DocumentFile>?> listFiles2() => saf.listFiles2(uri);
 
+  Future<DocumentFile?> mkdirp(List<String> path) => saf.mkdirp(uri, path);
+
   /// {@macro sharedstorage.saf.renameTo}
   Future<DocumentFile?> renameTo(String displayName) =>
       saf.renameTo(uri, displayName);
