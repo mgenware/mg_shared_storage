@@ -155,6 +155,26 @@ Future<DocumentBitmap?> getDocumentThumbnail({
   return bitmap?.apply((Map<String, dynamic> b) => DocumentBitmap.fromMap(b));
 }
 
+Future<bool> saveThumbnailFile({
+  required Uri uri,
+  required double width,
+  required double height,
+  required String format,
+  required String dest,
+}) async {
+  final Map<String, dynamic> args = <String, dynamic>{
+    'uri': '$uri',
+    'width': width,
+    'height': height,
+    'format': format,
+    'dest': dest,
+  };
+
+  return (await kDocumentsContractChannel.invokeMethod<bool>(
+          'saveThumbnailFile', args)) ??
+      false;
+}
+
 /// {@template sharedstorage.saf.listFiles}
 /// **Important**: Ensure you have read permission by calling `canRead` before calling `listFiles`.
 ///

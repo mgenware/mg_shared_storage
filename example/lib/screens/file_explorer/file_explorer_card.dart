@@ -4,6 +4,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
+import 'package:tmp_path/tmp_path.dart';
 import 'package:shared_storage/shared_storage.dart';
 
 import '../../utils/apply_if_not_null.dart';
@@ -48,19 +49,21 @@ class _FileExplorerCardState extends State<FileExplorerCard> {
 
   Future<void> _loadThumbnailIfAvailable() async {
     final uri = _file.uri;
-
-    final bitmap = await getDocumentThumbnail(
+    final tmpFile = tmpPath();
+    var saved = await saveThumbnailFile(
       uri: uri,
       width: _expandedThumbnailSize.width,
       height: _expandedThumbnailSize.height,
+      dest: tmpFile,
+      format: 'jpeg',
     );
-
-    if (bitmap == null) {
+    if (!saved) {
       _thumbnailImageBytes = Uint8List.fromList([]);
       _thumbnailSize = Size.zero;
     } else {
-      _thumbnailImageBytes = bitmap.bytes;
-      _thumbnailSize = Size(bitmap.width! / 1, bitmap.height! / 1);
+      _thumbnailImageBytes = await File(tmpFile).readAsBytes();
+      _thumbnailSize =
+          Size(_expandedThumbnailSize.width, _expandedThumbnailSize.height);
     }
 
     if (mounted) setState(() {});

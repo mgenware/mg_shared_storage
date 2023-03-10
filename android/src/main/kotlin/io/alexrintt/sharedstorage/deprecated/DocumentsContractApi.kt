@@ -64,8 +64,46 @@ internal class DocumentsContractApi(private val plugin: SharedStoragePlugin) :
     }
   }
 
+  private fun File.writeBitmap(bitmap: Bitmap, format: Bitmap.CompressFormat, quality: Int) {
+    outputStream().use { out ->
+      bitmap.compress(format, quality, out)
+      out.flush()
+    }
+  }
+
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     when (call.method) {
+      "saveThumbnailFile" -> {
+        val uri = Uri.parse(call.argument("uri"))
+        val dest = call.argument<String>("dest")!!;
+        val format = call.argument<String>("format")!!;
+
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val width = call.argument<Int>("width")!!
+          val height = call.argument<Int>("height")!!
+
+          val bitmap = DocumentsContract.getDocumentThumbnail(
+            plugin.context.contentResolver,
+            uri,
+            Point(width, height),
+            null
+          )
+
+          if (bitmap != null) {
+            CoroutineScope(Dispatchers.Default).launch {
+              val isJpeg = format == "jpeg"
+              File(dest).writeBitmap(bitmap, if (isJpeg) Bitmap.CompressFormat.JPEG else Bitmap.CompressFormat.PNG, if (isJpeg) 80 else 100);
+              launch(Dispatchers.Main) { result.success(true) }
+            }
+          } else {
+            Log.d("GET_DOCUMENT_THUMBNAIL", "bitmap is null")
+            result.success(false)
+          }
+        } else {
+          result.notSupported(call.method, API_21)
+        }
+      }
+
       GET_DOCUMENT_THUMBNAIL -> {
         val uri = Uri.parse(call.argument("uri"))
 
