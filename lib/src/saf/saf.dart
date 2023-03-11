@@ -566,6 +566,16 @@ Future<DocumentFile?> copy(Uri uri, Uri destination) async {
   return invokeMapMethod('copy', args);
 }
 
+Future<DocumentFile?> moveEx(Uri src, Uri srcDir, Uri destDir) async {
+  final Map<String, String> args = <String, String>{
+    'src': '$src',
+    'srcDir': '$srcDir',
+    'destDir': '$destDir'
+  };
+
+  return invokeMapMethod('moveEx', args);
+}
+
 /// {@template sharedstorage.saf.getDocumentContent}
 /// Get content of a given document `uri`.
 ///

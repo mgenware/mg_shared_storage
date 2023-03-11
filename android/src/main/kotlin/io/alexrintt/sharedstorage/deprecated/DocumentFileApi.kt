@@ -276,6 +276,34 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           )
         }
       }
+
+      "moveEx" -> {
+        val src = Uri.parse(call.argument<String>("src")!!)
+        val srcDir = Uri.parse(call.argument<String>("srcDir")!!)
+        val destDir = Uri.parse(call.argument<String>("destDir")!!)
+
+        if (Build.VERSION.SDK_INT >= API_24) {
+          CoroutineScope(Dispatchers.IO).launch {
+            DocumentsContract.moveDocument(
+              plugin.context.contentResolver,
+              src,
+              srcDir,
+              destDir
+            )
+
+            launch(Dispatchers.Main) {
+              result.success(null)
+            }
+          }
+        } else {
+          result.notSupported(
+            "moveEx",
+            API_24,
+            mapOf("src" to "$src", "destDir" to "$destDir")
+          )
+        }
+      }
+
       RENAME_TO -> {
         val uri = call.argument<String?>("uri") as String
         val displayName = call.argument<String?>("displayName") as String

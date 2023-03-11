@@ -126,6 +126,9 @@ class DocumentFile {
   /// {@macro sharedstorage.saf.copy}
   Future<DocumentFile?> copy(Uri destination) => saf.copy(uri, destination);
 
+  Future<DocumentFile?> moveTo(Uri srcParent, Uri destination) =>
+      saf.moveEx(uri, srcParent, destination);
+
   /// {@macro sharedstorage.saf.getDocumentContent}
   Future<Uint8List?> getContent() => saf.getDocumentContent(uri);
 
