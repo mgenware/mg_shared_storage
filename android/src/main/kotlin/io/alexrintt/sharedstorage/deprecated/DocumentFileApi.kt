@@ -284,15 +284,22 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
 
         if (Build.VERSION.SDK_INT >= API_24) {
           CoroutineScope(Dispatchers.IO).launch {
-            DocumentsContract.moveDocument(
+            val destFileUri = DocumentsContract.moveDocument(
               plugin.context.contentResolver,
               src,
               srcDir,
               destDir
             )
 
+            val destFileMap = if (destFileUri == null) null else createDocumentFileMap(
+              documentFromUri(
+                plugin.context,
+                destFileUri
+              )!!
+            )
+
             launch(Dispatchers.Main) {
-              result.success(null)
+              result.success(destFileMap)
             }
           }
         } else {
