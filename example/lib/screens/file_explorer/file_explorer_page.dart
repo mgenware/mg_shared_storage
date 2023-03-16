@@ -92,7 +92,17 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
 
     //   if (mounted) setState(() {});
     // }
-    await mkdirp(widget.uri, ['a', 'b', 'c']);
+    final dir = await mkdirp(widget.uri, ['a', 'b']);
+    await dir?.createFileAsString(
+        mimeType: 'application/octet-stream',
+        displayName: 'test.lire',
+        content: '😊⚒️❌✅😍😒');
+  }
+
+  Future<void> _moveFileToRootDir() async {
+    var srcDir = await child(widget.uri, 'a/b');
+    var file = await child(widget.uri, 'a/b/test.lire');
+    await moveEx(file!.uri, srcDir!.uri, widget.uri);
   }
 
   Widget _buildCreateDocumentButton() {
@@ -102,9 +112,17 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
         delegate: SliverChildListDelegate(
           [
             Center(
-              child: ActionButton(
-                'Create a custom document',
-                onTap: _createCustomDocument,
+              child: Row(
+                children: [
+                  ActionButton(
+                    'Create a custom document',
+                    onTap: _createCustomDocument,
+                  ),
+                  ActionButton(
+                    'Move file to root',
+                    onTap: _moveFileToRootDir,
+                  )
+                ],
               ),
             ),
           ],
