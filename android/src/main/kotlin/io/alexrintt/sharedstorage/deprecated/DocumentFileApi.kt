@@ -45,204 +45,204 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
 
   override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
     try {
-      when (call.method) {
-        GET_DOCUMENT_CONTENT -> {
-          val uri = Uri.parse(call.argument<String>("uri")!!)
+    when (call.method) {
+      GET_DOCUMENT_CONTENT -> {
+        val uri = Uri.parse(call.argument<String>("uri")!!)
 
-          if (Build.VERSION.SDK_INT >= API_21) {
-            CoroutineScope(Dispatchers.IO).launch {
-              val content = readDocumentContent(uri)
+        if (Build.VERSION.SDK_INT >= API_21) {
+          CoroutineScope(Dispatchers.IO).launch {
+            val content = readDocumentContent(uri)
 
-              launch(Dispatchers.Main) { result.success(content) }
-            }
-          } else {
-            result.notSupported(call.method, API_21)
+            launch(Dispatchers.Main) { result.success(content) }
           }
+        } else {
+          result.notSupported(call.method, API_21)
         }
-        SHIFT_DOCUMENT_CONTENT -> {
-          val uri = Uri.parse(call.argument<String>("uri")!!)
+      }
+      SHIFT_DOCUMENT_CONTENT -> {
+        val uri = Uri.parse(call.argument<String>("uri")!!)
 
-          if (Build.VERSION.SDK_INT >= API_21) {
-            CoroutineScope(Dispatchers.IO).launch {
-              val content = shiftDocumentContent(uri)
+        if (Build.VERSION.SDK_INT >= API_21) {
+          CoroutineScope(Dispatchers.IO).launch {
+            val content = shiftDocumentContent(uri)
 
-              launch(Dispatchers.Main) { result.success(content) }
-            }
-          } else {
-            result.notSupported(call.method, API_21)
+            launch(Dispatchers.Main) { result.success(content) }
           }
+        } else {
+          result.notSupported(call.method, API_21)
         }
-        OPEN_DOCUMENT ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            openDocument(call, result)
-          }
-        OPEN_DOCUMENT_TREE ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            openDocumentTree(call, result)
-          }
-        CREATE_FILE ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            createFile(
-              result,
-              call.argument<String>("mimeType")!!,
-              call.argument<String>("displayName")!!,
-              call.argument<String>("directoryUri")!!,
-              call.argument<ByteArray>("content")!!
-            )
-          }
-        WRITE_TO_FILE ->
-          writeToFile(
+      }
+      OPEN_DOCUMENT ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          openDocument(call, result)
+        }
+      OPEN_DOCUMENT_TREE ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          openDocumentTree(call, result)
+        }
+      CREATE_FILE ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          createFile(
             result,
-            call.argument<String>("uri")!!,
-            call.argument<ByteArray>("content")!!,
-            call.argument<String>("mode")!!
+            call.argument<String>("mimeType")!!,
+            call.argument<String>("displayName")!!,
+            call.argument<String>("directoryUri")!!,
+            call.argument<ByteArray>("content")!!
           )
-        PERSISTED_URI_PERMISSIONS ->
-          persistedUriPermissions(result)
-        RELEASE_PERSISTABLE_URI_PERMISSION ->
-          releasePersistableUriPermission(
-            result,
-            call.argument<String?>("uri") as String
-          )
-        FROM_TREE_URI ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            result.success(
-              createDocumentFileMap(
-                documentFromUri(
-                  plugin.context,
-                  call.argument<String?>("uri") as String
-                )
+        }
+      WRITE_TO_FILE ->
+        writeToFile(
+          result,
+          call.argument<String>("uri")!!,
+          call.argument<ByteArray>("content")!!,
+          call.argument<String>("mode")!!
+        )
+      PERSISTED_URI_PERMISSIONS ->
+        persistedUriPermissions(result)
+      RELEASE_PERSISTABLE_URI_PERMISSION ->
+        releasePersistableUriPermission(
+          result,
+          call.argument<String?>("uri") as String
+        )
+      FROM_TREE_URI ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          result.success(
+            createDocumentFileMap(
+              documentFromUri(
+                plugin.context,
+                call.argument<String?>("uri") as String
               )
             )
-          }
-        CAN_WRITE ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            result.success(
-              documentFromUri(
-                plugin.context,
-                call.argument<String?>("uri") as String
-              )?.canWrite()
-            )
-          }
-        CAN_READ ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val uri = call.argument<String?>("uri") as String
-
-            result.success(documentFromUri(plugin.context, uri)?.canRead())
-          }
-        LENGTH ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            result.success(
-              documentFromUri(
-                plugin.context,
-                call.argument<String?>("uri") as String
-              )?.length()
-            )
-          }
-        EXISTS ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            result.success(
-              documentFromUri(
-                plugin.context,
-                call.argument<String?>("uri") as String
-              )?.exists()
-            )
-          }
-        DELETE ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            result.success(
-              documentFromUri(
-                plugin.context,
-                call.argument<String?>("uri") as String
-              )?.delete()
-            )
-          }
-        LAST_MODIFIED ->
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val document = documentFromUri(
+          )
+        }
+      CAN_WRITE ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          result.success(
+            documentFromUri(
               plugin.context,
               call.argument<String?>("uri") as String
-            )
-
-            result.success(document?.lastModified())
-          }
-        CREATE_DIRECTORY -> {
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val uri = call.argument<String?>("uri") as String
-            val displayName = call.argument<String?>("displayName") as String
-
-            val createdDirectory =
-              documentFromUri(plugin.context, uri)?.createDirectory(displayName)
-                ?: return
-
-            result.success(createDocumentFileMap(createdDirectory))
-          } else {
-            result.notSupported(call.method, API_21)
-          }
+            )?.canWrite()
+          )
         }
-        "mkdirp" -> {
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val uri = call.argument<String?>("uri") as String
-            val path =
-              call.argument<ArrayList<String>>("path") as ArrayList<String>
+      CAN_READ ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
 
-            var curDocument = documentFromUri(
+          result.success(documentFromUri(plugin.context, uri)?.canRead())
+        }
+      LENGTH ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          result.success(
+            documentFromUri(
               plugin.context,
-              uri
-            );
+              call.argument<String?>("uri") as String
+            )?.length()
+          )
+        }
+      EXISTS ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          result.success(
+            documentFromUri(
+              plugin.context,
+              call.argument<String?>("uri") as String
+            )?.exists()
+          )
+        }
+      DELETE ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          result.success(
+            documentFromUri(
+              plugin.context,
+              call.argument<String?>("uri") as String
+            )?.delete()
+          )
+        }
+      LAST_MODIFIED ->
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val document = documentFromUri(
+            plugin.context,
+            call.argument<String?>("uri") as String
+          )
+
+          result.success(document?.lastModified())
+        }
+      CREATE_DIRECTORY -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
+          val displayName = call.argument<String?>("displayName") as String
+
+          val createdDirectory =
+            documentFromUri(plugin.context, uri)?.createDirectory(displayName)
+              ?: return
+
+          result.success(createDocumentFileMap(createdDirectory))
+        } else {
+          result.notSupported(call.method, API_21)
+        }
+      }
+      "mkdirp" -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
+          val path =
+            call.argument<ArrayList<String>>("path") as ArrayList<String>
+
+          var curDocument = documentFromUri(
+            plugin.context,
+            uri
+          );
+          if (curDocument == null) {
+            result.success(null)
+          } else {
+            for (name in path) {
+              var childDocument =
+                curDocument!!.child(plugin.context, name)
+              if (childDocument == null) {
+                childDocument = curDocument.createDirectory(name)
+              }
+              curDocument = childDocument
+            }
+
             if (curDocument == null) {
               result.success(null)
             } else {
-              for (name in path) {
-                var childDocument =
-                  curDocument!!.child(plugin.context, name)
-                if (childDocument == null) {
-                  childDocument = curDocument.createDirectory(name)
-                }
-                curDocument = childDocument
-              }
-
-              if (curDocument == null) {
-                result.success(null)
-              } else {
-                result.success(createDocumentFileMap(curDocument))
-              }
+              result.success(createDocumentFileMap(curDocument))
             }
           }
         }
-        "listFiles2" -> {
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val uri = call.argument<String?>("uri") as String
+      }
+      "listFiles2" -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
 
-            CoroutineScope(Dispatchers.IO).launch {
-              val files = documentFromUri(
+          CoroutineScope(Dispatchers.IO).launch {
+            val files = documentFromUri(
+              plugin.context,
+              uri
+            )?.listFiles()?.map { e -> createDocumentFileMap(e) }
+              ?.filterNotNull()
+
+            launch(Dispatchers.Main) { result.success(files) }
+          }
+        }
+      }
+      FIND_FILE -> {
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val uri = call.argument<String?>("uri") as String
+          val displayName = call.argument<String?>("displayName") as String
+
+          result.success(
+            createDocumentFileMap(
+              documentFromUri(
                 plugin.context,
                 uri
-              )?.listFiles()?.map { e -> createDocumentFileMap(e) }
-                ?.filterNotNull()
-
-              launch(Dispatchers.Main) { result.success(files) }
-            }
-          }
-        }
-        FIND_FILE -> {
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val uri = call.argument<String?>("uri") as String
-            val displayName = call.argument<String?>("displayName") as String
-
-            result.success(
-              createDocumentFileMap(
-                documentFromUri(
-                  plugin.context,
-                  uri
-                )?.findFile(displayName)
-              )
+              )?.findFile(displayName)
             )
-          }
+          )
         }
-        COPY -> {
-          val uri = Uri.parse(call.argument<String>("uri")!!)
-          val destination = Uri.parse(call.argument<String>("destination")!!)
+      }
+      COPY -> {
+        val uri = Uri.parse(call.argument<String>("uri")!!)
+        val destination = Uri.parse(call.argument<String>("destination")!!)
 
 //        if (uri.scheme == "file" && destination.scheme != "file") {
 //          uri.path?.let {
@@ -250,145 +250,145 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
 //
 //          }
 //        }
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val isContentUri: Boolean =
-              uri.scheme == "content" && destination.scheme == "content"
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val isContentUri: Boolean =
+            uri.scheme == "content" && destination.scheme == "content"
 
-            CoroutineScope(Dispatchers.IO).launch {
-              if (Build.VERSION.SDK_INT >= API_24 && isContentUri) {
-                DocumentsContract.copyDocument(
-                  plugin.context.contentResolver,
-                  uri,
-                  destination
-                )
-              } else {
-                val inputStream = openInputStream(uri)
-                val outputStream = openOutputStream(destination)
+          CoroutineScope(Dispatchers.IO).launch {
+            if (Build.VERSION.SDK_INT >= API_24 && isContentUri) {
+              DocumentsContract.copyDocument(
+                plugin.context.contentResolver,
+                uri,
+                destination
+              )
+            } else {
+              val inputStream = openInputStream(uri)
+              val outputStream = openOutputStream(destination)
 
-                outputStream?.let { inputStream?.copyTo(it) }
-              }
-
-              launch(Dispatchers.Main) {
-                result.success(null)
-              }
+              outputStream?.let { inputStream?.copyTo(it) }
             }
-          } else {
-            result.notSupported(
-              RENAME_TO,
-              API_21,
-              mapOf("uri" to "$uri", "destination" to "$destination")
-            )
-          }
-        }
 
-        "moveEx" -> {
-          val src = Uri.parse(call.argument<String>("src")!!)
-          val srcDir = Uri.parse(call.argument<String>("srcDir")!!)
-          val destDirStr = call.argument<String>("destDir")!!
-
-          if (Build.VERSION.SDK_INT >= API_24) {
-            CoroutineScope(Dispatchers.IO).launch {
-              try {
-                // IMP: Using root dir as destDir fails.
-                // The same SAF root dir can have 2 formats:
-                // Without subdir: content://com.android.externalstorage.documents/tree/primary%3AK2 (usually from file picker)
-                // With subdir:    content://com.android.externalstorage.documents/tree/primary%3AK2/document/primary%3AK2 (can get one from documentFromUri)
-                // This particular API seems to only favor a dest dir with subdir.
-                val destDir = documentFromUri(plugin.context, destDirStr)
-                  ?: throw Exception("Invalid destDir");
-                val destDirUri = destDir.uri
-
-                val destFileUri = DocumentsContract.moveDocument(
-                  plugin.context.contentResolver,
-                  src,
-                  srcDir,
-                  destDirUri
-                )
-
-                val destFileMap =
-                  if (destFileUri == null) null else createDocumentFileMap(
-                    documentFromUri(
-                      plugin.context,
-                      destFileUri
-                    )!!
-                  )
-                launch(Dispatchers.Main) {
-                  result.success(destFileMap)
-                }
-              } catch (e: Exception) {
-                launch(Dispatchers.Main) {
-                  result.error(
-                    "PluginException",
-                    e.message,
-                    null
-                  )
-                }
-              }
+            launch(Dispatchers.Main) {
+              result.success(null)
             }
-          } else {
-            result.notSupported(
-              "moveEx",
-              API_24,
-              mapOf("src" to "$src", "destDir" to "$destDirStr")
-            )
           }
+        } else {
+          result.notSupported(
+            RENAME_TO,
+            API_21,
+            mapOf("uri" to "$uri", "destination" to "$destination")
+          )
         }
+      }
 
-        RENAME_TO -> {
-          val uri = call.argument<String?>("uri") as String
-          val displayName = call.argument<String?>("displayName") as String
+      "moveEx" -> {
+        val src = Uri.parse(call.argument<String>("src")!!)
+        val srcDir = Uri.parse(call.argument<String>("srcDir")!!)
+        val destDirStr = call.argument<String>("destDir")!!
 
-          if (Build.VERSION.SDK_INT >= API_21) {
-            documentFromUri(plugin.context, uri)?.apply {
-              val success = renameTo(displayName)
+        if (Build.VERSION.SDK_INT >= API_24) {
+          CoroutineScope(Dispatchers.IO).launch {
+            try {
+              // IMP: Using root dir as destDir fails.
+              // The same SAF root dir can have 2 formats:
+              // Without subdir: content://com.android.externalstorage.documents/tree/primary%3AK2 (usually from file picker)
+              // With subdir:    content://com.android.externalstorage.documents/tree/primary%3AK2/document/primary%3AK2 (can get one from documentFromUri)
+              // This particular API seems to only favor a dest dir with subdir.
+              val destDir = documentFromUri(plugin.context, destDirStr)
+                ?: throw Exception("Invalid destDir");
+              val destDirUri = destDir.uri
 
-              result.success(
-                if (success) createDocumentFileMap(
+              val destFileUri = DocumentsContract.moveDocument(
+                plugin.context.contentResolver,
+                src,
+                srcDir,
+                destDirUri
+              )
+
+              val destFileMap =
+                if (destFileUri == null) null else createDocumentFileMap(
                   documentFromUri(
                     plugin.context,
-                    this.uri
+                    destFileUri
                   )!!
                 )
-                else null
-              )
+              launch(Dispatchers.Main) {
+                result.success(destFileMap)
+              }
+            } catch (e: Exception) {
+              launch(Dispatchers.Main) {
+                result.error(
+                  "PluginException",
+                  e.message,
+                  null
+                )
+              }
             }
-          } else {
-            result.notSupported(
-              RENAME_TO,
-              API_21,
-              mapOf("uri" to uri, "displayName" to displayName)
+          }
+        } else {
+          result.notSupported(
+            "moveEx",
+            API_24,
+            mapOf("src" to "$src", "destDir" to "$destDirStr")
+          )
+        }
+      }
+
+      RENAME_TO -> {
+        val uri = call.argument<String?>("uri") as String
+        val displayName = call.argument<String?>("displayName") as String
+
+        if (Build.VERSION.SDK_INT >= API_21) {
+          documentFromUri(plugin.context, uri)?.apply {
+            val success = renameTo(displayName)
+
+            result.success(
+              if (success) createDocumentFileMap(
+                documentFromUri(
+                  plugin.context,
+                  this.uri
+                )!!
+              )
+              else null
             )
           }
+        } else {
+          result.notSupported(
+            RENAME_TO,
+            API_21,
+            mapOf("uri" to uri, "displayName" to displayName)
+          )
         }
-        PARENT_FILE -> {
-          val uri = call.argument<String>("uri")!!
-
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val parent = documentFromUri(plugin.context, uri)?.parentFile
-
-            result.success(if (parent != null) createDocumentFileMap(parent) else null)
-          } else {
-            result.notSupported(PARENT_FILE, API_21, mapOf("uri" to uri))
-          }
-        }
-        CHILD -> {
-          val uri = call.argument<String>("uri")!!
-          val path = call.argument<String>("path")!!
-          val requiresWriteAccess =
-            call.argument<Boolean>("requiresWriteAccess") ?: false
-
-          if (Build.VERSION.SDK_INT >= API_21) {
-            val document = documentFromUri(plugin.context, uri)
-            val childDocument =
-              document?.child(plugin.context, path, requiresWriteAccess)
-
-            result.success(createDocumentFileMap(childDocument))
-          } else {
-            result.notSupported(CHILD, API_21, mapOf("uri" to uri))
-          }
-        }
-        else -> result.notImplemented()
       }
+      PARENT_FILE -> {
+        val uri = call.argument<String>("uri")!!
+
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val parent = documentFromUri(plugin.context, uri)?.parentFile
+
+          result.success(if (parent != null) createDocumentFileMap(parent) else null)
+        } else {
+          result.notSupported(PARENT_FILE, API_21, mapOf("uri" to uri))
+        }
+      }
+      CHILD -> {
+        val uri = call.argument<String>("uri")!!
+        val path = call.argument<String>("path")!!
+        val requiresWriteAccess =
+          call.argument<Boolean>("requiresWriteAccess") ?: false
+
+        if (Build.VERSION.SDK_INT >= API_21) {
+          val document = documentFromUri(plugin.context, uri)
+          val childDocument =
+            document?.child(plugin.context, path, requiresWriteAccess)
+
+          result.success(createDocumentFileMap(childDocument))
+        } else {
+          result.notSupported(CHILD, API_21, mapOf("uri" to uri))
+        }
+      }
+      else -> result.notImplemented()
+    }
     } catch (e: Exception) {
       result.error(
         "PluginException",
