@@ -19,8 +19,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.io.*
-import java.nio.file.Files
-import java.nio.file.Paths
 
 /**
  * Aimed to implement strictly only the APIs already available from the native and original
@@ -292,29 +290,6 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
         } else {
           result.notSupported(
             RENAME_TO,
-            API_21,
-            mapOf("uri" to "$uri", "destination" to "$destination")
-          )
-        }
-      }
-
-      "copyToLocal" -> {
-        val uri = Uri.parse(call.argument<String>("uri")!!)
-        val destination = call.argument<String>("destination")!!
-
-        if (Build.VERSION.SDK_INT >= API_21) {
-          CoroutineScope(Dispatchers.IO).launch {
-            val inputStream = openInputStream(uri)
-            val outputStream = FileOutputStream(File(destination))
-
-            outputStream?.let { inputStream?.copyTo(it) }
-            launch(Dispatchers.Main) {
-              result.success(null)
-            }
-          }
-        } else {
-          result.notSupported(
-            "copyToLocal",
             API_21,
             mapOf("uri" to "$uri", "destination" to "$destination")
           )

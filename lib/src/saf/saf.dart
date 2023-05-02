@@ -587,15 +587,6 @@ Future<DocumentFile?> copy(Uri uri, Uri destination) async {
   return invokeMapMethod('copy', args);
 }
 
-Future<DocumentFile?> copyToLocal(Uri uri, String destination) async {
-  final Map<String, String> args = <String, String>{
-    'uri': '$uri',
-    'destination': destination
-  };
-
-  return invokeMapMethod('copyToLocal', args);
-}
-
 Future<DocumentFile?> moveEx(Uri src, Uri srcDir, Uri destDir) async {
   final Map<String, String> args = <String, String>{
     'src': '$src',

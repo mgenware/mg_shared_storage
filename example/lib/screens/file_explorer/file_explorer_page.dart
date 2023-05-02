@@ -1,10 +1,8 @@
 import 'dart:async';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 
 import 'package:shared_storage/shared_storage.dart';
-import 'package:tmp_path/tmp_path.dart';
 
 import '../../theme/spacing.dart';
 import '../../widgets/buttons.dart';
@@ -96,18 +94,15 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
     // }
     final dir = await mkdirp(widget.uri, ['a', 'b']);
     await dir?.createFileAsString(
-      mimeType: 'application/octet-stream',
-      displayName: 'test.lire',
-      content: '😊⚒️❌✅😍😒',
-    );
+        mimeType: 'application/octet-stream',
+        displayName: 'test.lire',
+        content: '😊⚒️❌✅😍😒');
   }
 
   Future<void> _moveFileToRootDir() async {
-    final file = await child(widget.uri, 'a/b/test.lire');
-    final dest = tmpPath();
-    await copyToLocal(file!.uri, dest);
-    final localFile = await File(dest).readAsBytes();
-    print(localFile);
+    var srcDir = await child(widget.uri, 'a/b');
+    var file = await child(widget.uri, 'a/b/test.lire');
+    await moveEx(file!.uri, srcDir!.uri, widget.uri);
   }
 
   Widget _buildCreateDocumentButton() {
@@ -124,7 +119,7 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
                     onTap: _createCustomDocument,
                   ),
                   ActionButton(
-                    'Copy to local',
+                    'Move file to root',
                     onTap: _moveFileToRootDir,
                   )
                 ],
