@@ -1,3 +1,3 @@
-library shared_storage;
+library mg_shared_storage;
 
 export './saf.dart';

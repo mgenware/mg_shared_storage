@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import 'package:shared_storage/shared_storage.dart';
+import 'package:mg_shared_storage/shared_storage.dart';
 
 import '../../theme/spacing.dart';
 import '../../widgets/buttons.dart';

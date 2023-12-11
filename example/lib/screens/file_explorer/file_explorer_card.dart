@@ -5,7 +5,7 @@ import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:tmp_path/tmp_path.dart';
-import 'package:shared_storage/shared_storage.dart';
+import 'package:mg_shared_storage/shared_storage.dart';
 
 import '../../utils/apply_if_not_null.dart';
 import '../../utils/confirm_decorator.dart';

@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'package:fl_toast/fl_toast.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:shared_storage/saf.dart';
+import 'package:mg_shared_storage/saf.dart';
 
 import '../theme/spacing.dart';
 import 'disabled_text_style.dart';
