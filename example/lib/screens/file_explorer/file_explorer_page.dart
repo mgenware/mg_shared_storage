@@ -8,7 +8,6 @@ import '../../theme/spacing.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/light_text.dart';
 import '../../widgets/simple_card.dart';
-import '../../widgets/text_field_dialog.dart';
 import 'file_explorer_card.dart';
 
 class FileExplorerPage extends StatefulWidget {
@@ -100,9 +99,8 @@ class _FileExplorerPageState extends State<FileExplorerPage> {
   }
 
   Future<void> _moveFileToRootDir() async {
-    var srcDir = await child(widget.uri, 'a/b');
     var file = await child(widget.uri, 'a/b/test.lire');
-    await moveEx(file!.uri, srcDir!.uri, widget.uri);
+    await moveEx(file!.uri, widget.uri);
   }
 
   Widget _buildCreateDocumentButton() {
