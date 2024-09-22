@@ -229,6 +229,8 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
               result.success(createDocumentFileMap(curDocument))
             }
           }
+        } else {
+          result.notSupported(call.method, API_21)
         }
       }
       "listFiles2" -> {
@@ -344,7 +346,7 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           result.notSupported(
             "moveEx",
             API_24,
-            mapOf("src" to "$src", "destDir" to "$destDirStr")
+            mapOf("src" to "$src", "destDir" to destDirStr)
           )
         }
       }
