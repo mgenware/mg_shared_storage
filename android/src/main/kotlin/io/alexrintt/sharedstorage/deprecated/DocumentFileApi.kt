@@ -220,6 +220,9 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
               if (childDocument == null) {
                 childDocument = curDocument.createDirectory(name)
               }
+              if (childDocument?.isFile == true) {
+                throw Exception("Running into files in mkdirp")
+              }
               curDocument = childDocument
             }
 
