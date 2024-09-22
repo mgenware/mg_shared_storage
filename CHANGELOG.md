@@ -1,3 +1,9 @@
+## 0.8.0
+
+- Update Android SDK to `34`.
+- Update `storage` dependency.
+- Update `moveEx` API.
+
 ## 0.7.0
 
 - New APIs and options.
