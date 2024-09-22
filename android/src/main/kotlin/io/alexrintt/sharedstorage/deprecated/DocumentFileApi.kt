@@ -300,6 +300,7 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
 
       "moveEx" -> {
         val src = Uri.parse(call.argument<String>("src")!!)
+        val srcDir = Uri.parse(call.argument<String>("srcDir")!!)
         val destDirStr = call.argument<String>("destDir")!!
 
         if (Build.VERSION.SDK_INT >= API_24) {
@@ -310,9 +311,6 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
               // Without subdir: content://com.android.externalstorage.documents/tree/primary%3AK2 (usually from file picker)
               // With subdir:    content://com.android.externalstorage.documents/tree/primary%3AK2/document/primary%3AK2 (can get one from documentFromUri)
               // This particular API seems to only favor a dest dir with subdir.
-              val srcFile = documentFromUri(plugin.context, src)
-                ?: throw Exception("Invalid src");
-              val srcDir = srcFile.parentFile ?: throw Exception("No parent dir found");
               val destDir = documentFromUri(plugin.context, destDirStr)
                 ?: throw Exception("Invalid destDir");
               val destDirUri = destDir.uri
@@ -320,7 +318,7 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
               val destFileUri = DocumentsContract.moveDocument(
                 plugin.context.contentResolver,
                 src,
-                srcDir.uri,
+                srcDir,
                 destDirUri
               )
 
