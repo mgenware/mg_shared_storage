@@ -208,38 +208,44 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
       "mkdirp" -> {
         if (Build.VERSION.SDK_INT >= API_21) {
           CoroutineScope(Dispatchers.IO).launch {
-            val uri = call.argument<String?>("uri") as String
-            val path =
-              call.argument<ArrayList<String>>("path") as ArrayList<String>
+            try {
+              val uri = call.argument<String?>("uri") as String
+              val path =
+                call.argument<ArrayList<String>>("path") as ArrayList<String>
 
-            var curDocument = documentFromUri(
-              plugin.context,
-              uri
-            );
-            if (curDocument == null) {
-              launch(Dispatchers.Main) { result.success(null) }
-            } else {
-              for (name in path) {
-                var childDocument =
-                  curDocument!!.child(plugin.context, name)
-                if (childDocument == null) {
-                  childDocument = curDocument.createDirectory(name)
+              var curDocument = documentFromUri(
+                plugin.context,
+                uri
+              );
+              if (curDocument == null) {
+                launch(Dispatchers.Main) { result.success(null) }
+              } else {
+                for (name in path) {
+                  var childDocument =
+                    curDocument!!.child(plugin.context, name)
+                  if (childDocument == null) {
+                    childDocument = curDocument.createDirectory(name)
+                  }
+                  if (childDocument?.isFile == true) {
+                    throw Exception("Running into files in mkdirp")
+                  }
+                  curDocument = childDocument
                 }
-                if (childDocument?.isFile == true) {
-                  throw Exception("Running into files in mkdirp")
+
+                launch(Dispatchers.Main) {
+                  if (curDocument == null) {
+                    result.success(null)
+                  } else {
+                    result.success(createDocumentFileMap(curDocument))
+                  }
                 }
-                curDocument = childDocument
               }
-
+            } catch (err: Exception) {
               launch(Dispatchers.Main) {
-                if (curDocument == null) {
-                  result.success(null)
-                } else {
-                  result.success(createDocumentFileMap(curDocument))
-                }
+                result.error("PluginError", err.message, null)
               }
             }
-          }
+          } // end of launch
         } else {
           result.notSupported(call.method, API_21)
         }

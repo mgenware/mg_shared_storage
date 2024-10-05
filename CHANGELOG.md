@@ -1,3 +1,7 @@
+## 0.9.1
+
+- Better error handling in `mkdirp`
+
 ## 0.9.0
 
 - Fix some threading issues
