@@ -150,32 +150,36 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
         }
       DELETE ->
         if (Build.VERSION.SDK_INT >= API_21) {
-          try {
-            result.success(
-              documentFromUri(
-                plugin.context,
-                call.argument<String?>("uri") as String
-              )?.delete()
-            )
-          } catch (e: FileNotFoundException) {
-            // File is already deleted.
-            result.success(null)
-          } catch (e: IllegalStateException) {
-            // File is already deleted.
-            result.success(null)
-          } catch (e: IllegalArgumentException) {
-            // File is already deleted.
-            result.success(null)
-          } catch (e: IOException) {
-            // Unknown, can be anything.
-            result.success(null)
-          } catch (e: Throwable) {
-            Log.d(
-              "sharedstorage",
-              "Unknown error when calling [delete] method with [uri]."
-            )
-            // Unknown, can be anything.
-            result.success(null)
+          CoroutineScope(Dispatchers.IO).launch {
+            try {
+              result.success(
+                documentFromUri(
+                  plugin.context,
+                  call.argument<String?>("uri") as String
+                )?.delete()
+              )
+            } catch (e: FileNotFoundException) {
+              // File is already deleted.
+              launch(Dispatchers.Main) { result.success(null) }
+            } catch (e: IllegalStateException) {
+              // File is already deleted.
+              launch(Dispatchers.Main) { result.success(null) }
+            } catch (e: IllegalArgumentException) {
+              // File is already deleted.
+              launch(Dispatchers.Main) { result.success(null) }
+            } catch (e: IOException) {
+              // Unknown, can be anything.
+              launch(Dispatchers.Main) { result.success(null) }
+            } catch (e: Throwable) {
+              launch(Dispatchers.Main) {
+                Log.d(
+                  "sharedstorage",
+                  "Unknown error when calling [delete] method with [uri]."
+                )
+                // Unknown, can be anything.
+                result.success(null)
+              }
+            }
           }
         }
       LAST_MODIFIED ->
@@ -203,33 +207,37 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
       }
       "mkdirp" -> {
         if (Build.VERSION.SDK_INT >= API_21) {
-          val uri = call.argument<String?>("uri") as String
-          val path =
-            call.argument<ArrayList<String>>("path") as ArrayList<String>
+          CoroutineScope(Dispatchers.IO).launch {
+            val uri = call.argument<String?>("uri") as String
+            val path =
+              call.argument<ArrayList<String>>("path") as ArrayList<String>
 
-          var curDocument = documentFromUri(
-            plugin.context,
-            uri
-          );
-          if (curDocument == null) {
-            result.success(null)
-          } else {
-            for (name in path) {
-              var childDocument =
-                curDocument!!.child(plugin.context, name)
-              if (childDocument == null) {
-                childDocument = curDocument.createDirectory(name)
-              }
-              if (childDocument?.isFile == true) {
-                throw Exception("Running into files in mkdirp")
-              }
-              curDocument = childDocument
-            }
-
+            var curDocument = documentFromUri(
+              plugin.context,
+              uri
+            );
             if (curDocument == null) {
-              result.success(null)
+              launch(Dispatchers.Main) { result.success(null) }
             } else {
-              result.success(createDocumentFileMap(curDocument))
+              for (name in path) {
+                var childDocument =
+                  curDocument!!.child(plugin.context, name)
+                if (childDocument == null) {
+                  childDocument = curDocument.createDirectory(name)
+                }
+                if (childDocument?.isFile == true) {
+                  throw Exception("Running into files in mkdirp")
+                }
+                curDocument = childDocument
+              }
+
+              launch(Dispatchers.Main) {
+                if (curDocument == null) {
+                  result.success(null)
+                } else {
+                  result.success(createDocumentFileMap(curDocument))
+                }
+              }
             }
           }
         } else {
@@ -359,18 +367,23 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
         val displayName = call.argument<String?>("displayName") as String
 
         if (Build.VERSION.SDK_INT >= API_21) {
-          documentFromUri(plugin.context, uri)?.apply {
-            val success = renameTo(displayName)
+          CoroutineScope(Dispatchers.IO).launch {
+            documentFromUri(plugin.context, uri)?.apply {
+              val success = renameTo(displayName)
+              val thisUri = this.uri
 
-            result.success(
-              if (success) createDocumentFileMap(
-                documentFromUri(
-                  plugin.context,
-                  this.uri
-                )!!
-              )
-              else null
-            )
+              launch(Dispatchers.Main) {
+                result.success(
+                  if (success) createDocumentFileMap(
+                    documentFromUri(
+                      plugin.context,
+                      thisUri
+                    )!!
+                  )
+                  else null
+                )
+              }
+            }
           }
         } else {
           result.notSupported(
@@ -398,11 +411,15 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           call.argument<Boolean>("requiresWriteAccess") ?: false
 
         if (Build.VERSION.SDK_INT >= API_21) {
-          val document = documentFromUri(plugin.context, uri)
-          val childDocument =
-            document?.child(plugin.context, path, requiresWriteAccess)
+          CoroutineScope(Dispatchers.IO).launch {
+            val document = documentFromUri(plugin.context, uri)
+            val childDocument =
+              document?.child(plugin.context, path, requiresWriteAccess)
 
-          result.success(createDocumentFileMap(childDocument))
+            launch(Dispatchers.Main) {
+              result.success(createDocumentFileMap(childDocument))
+            }
+          }
         } else {
           result.notSupported(CHILD, API_21, mapOf("uri" to uri))
         }

@@ -1,3 +1,7 @@
+## 0.9.0
+
+- Fix some threading issues
+
 ## 0.8.0
 
 - Update Android SDK to `34`.
