@@ -1,6 +1,7 @@
 package io.alexrintt.sharedstorage.deprecated
 
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Build
 import android.provider.DocumentsContract
@@ -255,13 +256,60 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           val uri = call.argument<String?>("uri") as String
 
           CoroutineScope(Dispatchers.IO).launch {
-            val files = documentFromUri(
-              plugin.context,
-              uri
-            )?.listFiles()?.map { e -> createDocumentFileMap(e) }
-              ?.filterNotNull()
+            try {
+              val dir = documentFromUri(plugin.context, uri)
+              if (dir == null || !dir.isDirectory) {
+                throw Exception("Not a directory")
+              }
+              val resolver = plugin.context.contentResolver
+              val mUri = dir.uri
+              val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(mUri, DocumentsContract.getDocumentId(mUri))
+              val results = mutableListOf<Map<String, Any?>>()
+              var cursor: Cursor? = null
 
-            launch(Dispatchers.Main) { result.success(files) }
+              cursor = resolver.query(
+                childrenUri,
+                arrayOf(
+                  DocumentsContract.Document.COLUMN_DOCUMENT_ID,
+                  DocumentsContract.Document.COLUMN_DISPLAY_NAME,
+                  DocumentsContract.Document.COLUMN_SIZE,
+                  DocumentsContract.Document.COLUMN_MIME_TYPE,
+                  DocumentsContract.Document.COLUMN_LAST_MODIFIED
+                ),
+                null,
+                null,
+                null
+              )
+
+              while (cursor?.moveToNext() == true) {
+                val documentId = cursor.getString(0)
+                val fileName = cursor.getString(1)
+                val fileSize = cursor.getLong(2)
+                val mimeType = cursor.getString(3)
+                val lastModified = cursor.getLong(4)
+                val documentUri = DocumentsContract.buildDocumentUriUsingTree(mUri, documentId)
+
+                // Determine if the file is a directory based on the MIME type
+                val isDirectory = DocumentsContract.Document.MIME_TYPE_DIR == mimeType
+
+                // Create a dictionary (map) for each file with its details
+                val fileInfo = mapOf(
+                  "name" to fileName,
+                  "size" to fileSize,
+                  "isDirectory" to isDirectory,
+                  "lastModified" to lastModified,
+                  "uri" to "$documentUri",
+                  "id" to documentId
+                )
+                results.add(fileInfo)
+              }
+
+              launch(Dispatchers.Main) { result.success(results) }
+            } catch (err: Exception) {
+              launch(Dispatchers.Main) {
+                result.error("PluginError", err.message, null)
+              }
+            }
           }
         }
       }

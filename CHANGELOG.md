@@ -1,3 +1,7 @@
+## 0.9.2
+
+- Faster implementation of `listFiles` API.
+
 ## 0.9.1
 
 - Better error handling in `mkdirp`
