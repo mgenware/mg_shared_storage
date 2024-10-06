@@ -256,6 +256,7 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
           val uri = call.argument<String?>("uri") as String
 
           CoroutineScope(Dispatchers.IO).launch {
+            var cursor: Cursor? = null
             try {
               val dir = documentFromUri(plugin.context, uri)
               if (dir == null || !dir.isDirectory) {
@@ -265,7 +266,6 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
               val mUri = dir.uri
               val childrenUri = DocumentsContract.buildChildDocumentsUriUsingTree(mUri, DocumentsContract.getDocumentId(mUri))
               val results = mutableListOf<Map<String, Any?>>()
-              var cursor: Cursor? = null
 
               cursor = resolver.query(
                 childrenUri,
@@ -308,6 +308,11 @@ internal class DocumentFileApi(private val plugin: SharedStoragePlugin) :
             } catch (err: Exception) {
               launch(Dispatchers.Main) {
                 result.error("PluginError", err.message, null)
+              }
+            } finally {
+              try {
+                cursor?.close()
+              } catch (_: Exception) {
               }
             }
           }
